@@ -163,7 +163,7 @@ final class CreateHabitViewController: UIViewController {
         nameField.translatesAutoresizingMaskIntoConstraints = false
         settingTable.translatesAutoresizingMaskIntoConstraints = false
         buttonStack.translatesAutoresizingMaskIntoConstraints = false
-        
+
         NSLayoutConstraint.activate([
             nameField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             nameField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),

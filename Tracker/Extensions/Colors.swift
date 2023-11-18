@@ -43,6 +43,7 @@ extension UIColor {
     static var colors: [String: UIColor] = [:]
     
     static func color(for name: String) -> UIColor {
+
         if let color = UIColor(named: name) {
             colors[name] = color
             return color
