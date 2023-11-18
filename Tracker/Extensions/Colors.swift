@@ -43,10 +43,13 @@ extension UIColor {
     static var colors: [String: UIColor] = [:]
     
     static func color(for name: String) -> UIColor {
-        if let color = colors.updateValue(UIColor(named: name) ?? UIColor.black, forKey: name) {
+
+        if let color = UIColor(named: name) {
+            colors[name] = color
             return color
         } else {
-            return colors[name]!
+            print("Error - Цвет в базе не найден (выделим участок красным цветом)")
+            return UIColor.red
         }
     }
 }

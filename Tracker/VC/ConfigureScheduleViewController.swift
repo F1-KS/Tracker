@@ -5,10 +5,10 @@ protocol ConfigureScheduleViewControllerDelegate: AnyObject {
 }
 
 final class ConfigureScheduleViewController: UIViewController {
-
+    
     private let switchTable: UITableView = {
         let table = UITableView(frame: .zero)
-
+        
         table.register(SwitchTableViewCell.self, forCellReuseIdentifier: SwitchTableViewCell.identifier)
         table.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         table.isScrollEnabled = false
@@ -17,10 +17,10 @@ final class ConfigureScheduleViewController: UIViewController {
         table.heightAnchor.constraint(equalToConstant: 525).isActive = true
         return table
     }()
-
+    
     private lazy var doneButton: UIButton = {
         let button = UIButton(type: .custom)
-
+        
         button.setTitle("Готово", for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.backgroundColor = UIColor(named: "ypGray")
@@ -31,27 +31,27 @@ final class ConfigureScheduleViewController: UIViewController {
         button.addTarget(self, action: #selector(didTapDoneButton), for: .touchUpInside)
         return button
     }()
-
+    
     private var schedule: Set<WeekDays> = []
     private var switches: Array<SwitchOptions> = []
-
+    
     weak var delegate: ConfigureScheduleViewControllerDelegate?
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         switchTable.dataSource = self
         switchTable.delegate = self
-
+        
         appendSwitches()
         setupNavigationBar()
         makeViewLayout()
     }
-
+    
     @objc private func didTapDoneButton() {
         delegate?.didConfigure(schedule: schedule)
     }
-
+    
     private func appendSwitches() {
         switches.append(contentsOf: [
             SwitchOptions(weekDays: .monday, name: "Понедельник", isOn: schedule.contains(.monday)),
@@ -61,9 +61,9 @@ final class ConfigureScheduleViewController: UIViewController {
             SwitchOptions(weekDays: .friday, name: "Пятница", isOn: schedule.contains(.friday)),
             SwitchOptions(weekDays: .saturday, name: "Суббота", isOn: schedule.contains(.saturday)),
             SwitchOptions(weekDays: .sunday, name: "Воскресенье", isOn: schedule.contains(.sunday)),
-            ])
+        ])
     }
-
+    
     private func setupNavigationBar() {
         let titleAttributes = [
             NSAttributedString.Key.foregroundColor: UIColor(named: "ypBlackDay"),
@@ -72,14 +72,14 @@ final class ConfigureScheduleViewController: UIViewController {
         navigationController?.navigationBar.titleTextAttributes = titleAttributes as [NSAttributedString.Key : Any]
         navigationController?.navigationBar.topItem?.title = "Расписание"
     }
-
+    
     private func makeViewLayout() {
         view.backgroundColor = UIColor(named: "ypWhiteDay")
         view.addSubview(switchTable)
         view.addSubview(doneButton)
         switchTable.translatesAutoresizingMaskIntoConstraints = false
         doneButton.translatesAutoresizingMaskIntoConstraints = false
-
+        
         NSLayoutConstraint.activate([
             switchTable.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             switchTable.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
@@ -87,9 +87,9 @@ final class ConfigureScheduleViewController: UIViewController {
             doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
-            ])
+        ])
     }
-
+    
     private func setDoneButtonState() {
         if schedule.isEmpty {
             doneButton.backgroundColor = UIColor(named: "ypGray")
@@ -102,20 +102,20 @@ final class ConfigureScheduleViewController: UIViewController {
 }
 
 extension ConfigureScheduleViewController: UITableViewDataSource {
-
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return switches.count
     }
-
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let switchCell = tableView
             .dequeueReusableCell(withIdentifier: SwitchTableViewCell.identifier, for: indexPath) as? SwitchTableViewCell
-            else {
+        else {
             preconditionFailure("Type cast error")
         }
         switchCell.delegate = self
         switchCell.configure(options: switches[indexPath.row])
-
+        
         if indexPath.row == switches.count - 1 { // hide separator for last cell
             let centerX = switchCell.bounds.width / 2
             switchCell.separatorInset = UIEdgeInsets(top: 0, left: centerX, bottom: 0, right: centerX)
@@ -125,14 +125,14 @@ extension ConfigureScheduleViewController: UITableViewDataSource {
 }
 
 extension ConfigureScheduleViewController: UITableViewDelegate {
-
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
     }
 }
 
 extension ConfigureScheduleViewController: SwitchTableViewCellDelegate {
-
+    
     func didChangeState(isOn: Bool, for weekDays: WeekDays) {
         if isOn {
             schedule.insert(weekDays)
