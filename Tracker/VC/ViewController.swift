@@ -80,20 +80,7 @@ final class TrackersViewController: UIViewController {
     
     private let widthParameters = CollectionParameters(cellsNumber: 2, leftInset: 16, rightInset: 16, interCellSpacing: 10)
     
-    private var categories: Array<TrackerCategoryStruct> = [
-        TrackerCategoryStruct(
-            title: "Домашний уют",
-            trackers: [
-                TrackerStruct(
-                    id: UUID(),
-                    name: "Поливать растения",
-                    color: UIColor(named: "ypColorSelection5")!,
-                    emoji: "😪",
-                    schedule: [.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday]
-                )
-            ]
-        )
-    ]
+    private var categories: Array<TrackerCategoryStruct> = []
     
     private var visibleCategories: Array<TrackerCategoryStruct> = []
     private var completedRecords: Array<TrackerRecordStruct> = []
@@ -102,6 +89,8 @@ final class TrackersViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        loadTrackers()
+        
         trackerCollection.dataSource = self
         trackerCollection.delegate = self
         makeViewLayout()
@@ -109,6 +98,33 @@ final class TrackersViewController: UIViewController {
         navigationBar()
         visibleCategories.append(contentsOf: categories)
         didChangeSelectedDate()
+    }
+    
+    private func loadTrackers() {
+        if let saved = TrackerStorage.shared.load() {
+            categories = saved.categories
+            completedRecords = saved.records
+        } else {
+            // Первый запуск — заполняем демо-данными
+            categories = [
+                TrackerCategoryStruct(
+                    title: "Домашний уют",
+                    trackers: [
+                        TrackerStruct(
+                            id: UUID(),
+                            name: "Поливать растения",
+                            color: UIColor(named: "ypColorSelection5")!,
+                            emoji: "😪",
+                            schedule: [.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday]
+                        )
+                    ]
+                )
+            ]
+        }
+    }
+    
+    private func saveTrackers() {
+        TrackerStorage.shared.save(categories: categories, records: completedRecords)
     }
     
     private func isMatchRecord(model: TrackerRecordStruct, with trackerID: UUID) -> Bool {
@@ -246,12 +262,7 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        
-        let indexPath = IndexPath(row: 0, section: section)
-        let headerView = self.collectionView(collectionView, viewForSupplementaryElementOfKind: UICollectionView.elementKindSectionHeader, at: indexPath)
-        let targetSize = CGSize(width: collectionView.bounds.width, height: 42)
-        
-        return headerView.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .required)
+        return CGSize(width: collectionView.bounds.width, height: 42)
     }
 }
 
@@ -262,11 +273,13 @@ extension TrackersViewController: TrackerCollectionViewCellDelegate {
             return
         }
         completedRecords.append(TrackerRecordStruct(trackerID: id, completionDate: selectedDate))
+        saveTrackers()
         trackerCollection.reloadItems(at: [indexPath])
     }
     
     func unfinishedTracker(with id: UUID, at indexPath: IndexPath) {
         completedRecords.removeAll { isMatchRecord(model: $0, with: id) }
+        saveTrackers()
         trackerCollection.reloadItems(at: [indexPath])
     }
 }
@@ -289,6 +302,7 @@ extension TrackersViewController: CreateTrackerViewControllerDelegate {
                 trackers: [model]
             )
         )
+        saveTrackers()
         didChangeSelectedDate()
         dismiss(animated: true)
     }
